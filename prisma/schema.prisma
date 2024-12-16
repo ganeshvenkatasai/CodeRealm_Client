@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+
+  url = env("DATABASE_URL")
+}
+
+model Codesubmissions {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  pid         String   @unique
+  queId       String   @db.ObjectId
+  title       String
+  accepted    Boolean
+  email       String?  @unique
+  code        String
+  language    String
+  testcases   Int[]
+  runtime     String
+  submittedat DateTime @default(now())
+  output      String
+  question    CodeQue? @relation(fields: [queId], references: [id])
+
+  @@map("submissions")
+}
+
+model CodeQue {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  difficulty      String
+  category        String
+  description     String
+  submissions     Submission
+  templates       Languages         @relation(fields: [templateId], references: [id])
+  templateId      String            @unique @db.ObjectId
+  testCases       TestCase[]
+  Codesubmissions Codesubmissions[]
+
+  @@map("CodeQues")
+}
+
+model Languages {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  // CodeQue    CodeQue?          @relation(fields: [queId], references: [id])
+
+  python     LanguageTemplate?
+  javascript LanguageTemplate?
+  golang     LanguageTemplate?
+  java       LanguageTemplate?
+  c          LanguageTemplate?
+  cpp        LanguageTemplate?
+  CodeQue    CodeQue?
+
+  @@map("Templates")
+}
+
+type LanguageTemplate {
+  userCode       String
+  runTestCode    String
+  hiddenTestCode String
+}
+
+type Submission {
+  correct Int
+  wrong   Int
+}
+
+type TestCase {
+  input  String
+  output String
+}
